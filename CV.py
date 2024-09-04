@@ -3,7 +3,7 @@ import streamlit as st
 from transformers import pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-import fitz  # PyMuPDF
+import pdfplumber
 from docx import Document
 
 # Set environment variable to disable oneDNN custom operations
@@ -55,11 +55,10 @@ def vectorize_and_match(job_desc_summary, resume_summary):
 
 def extract_text_from_pdf(file):
     try:
-        pdf_document = fitz.open(stream=file.read(), filetype="pdf")
-        text = ""
-        for page_num in range(len(pdf_document)):
-            page = pdf_document[page_num]
-            text += page.get_text()
+        with pdfplumber.open(file) as pdf:
+            text = ""
+            for page in pdf.pages:
+                text += page.extract_text() or ""
         return text
     except Exception as e:
         st.error(f"Error extracting text from PDF: {e}")
